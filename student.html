@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📝 답변 입력</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;800&display=swap');
+  :root{--bg:#f8f9ff;--card:#ffffff;--accent:#4f6ef7;--accent-dark:#3a56d4;--text:#1a1d2e;--muted:#8b90a7;--border:#e4e6f0;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(79,110,247,0.08) 0%,transparent 55%),radial-gradient(ellipse at 70% 80%,rgba(79,110,247,0.05) 0%,transparent 55%);pointer-events:none;}
+  .box{position:relative;background:var(--card);border-radius:24px;padding:48px 40px;width:100%;max-width:480px;box-shadow:0 8px 48px rgba(79,110,247,0.1),0 2px 8px rgba(0,0,0,0.06);animation:fadeUp 0.5s ease;}
+  .top-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(79,110,247,0.08);color:var(--accent);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;margin-bottom:20px;}
+  .top-badge::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 1.5s infinite;}
+  .q-label{font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+  .q-text{font-size:22px;font-weight:800;line-height:1.4;color:var(--text);margin-bottom:32px;min-height:32px;}
+  .field{margin-bottom:16px;}
+  .field label{font-size:13px;color:var(--muted);font-weight:600;display:block;margin-bottom:7px;}
+  .field input{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:12px;color:var(--text);padding:14px 16px;font-family:'Noto Sans KR',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+  .field input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(79,110,247,0.1);}
+  .field input::placeholder{color:var(--muted);}
+  .submit-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:16px;font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all 0.2s;margin-top:8px;}
+  .submit-btn:hover{background:var(--accent-dark);transform:translateY(-2px);box-shadow:0 8px 20px rgba(79,110,247,0.3);}
+  .submit-btn:disabled{background:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
+  #done-screen{display:none;text-align:center;animation:fadeUp 0.5s ease;}
+  .done-icon{width:80px;height:80px;background:rgba(34,197,94,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;animation:pop 0.4s ease;}
+  #done-screen h2{font-size:24px;font-weight:800;margin-bottom:10px;}
+  #done-screen p{font-size:14px;color:var(--muted);line-height:1.7;}
+  .done-name{color:var(--accent);font-weight:700;}
+  .err-msg{font-size:12px;color:#ef4444;margin-top:5px;display:none;}
+  .loading{display:none;text-align:center;padding:16px 0;color:var(--muted);font-size:14px;}
+  .spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 8px;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  @keyframes pop{0%{transform:scale(0.5);opacity:0}80%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:480px){.box{padding:36px 24px;border-radius:20px;}.q-text{font-size:19px;}}
+</style>
+</head>
+<body>
+<div class="box">
+  <div id="form-screen">
+    <div class="top-badge">응답 수집 중</div>
+    <div class="q-label">질문</div>
+    <div class="q-text" id="q-text">질문을 불러오는 중...</div>
+    <div class="field">
+      <label>이름</label>
+      <input type="text" id="name-input" placeholder="이름을 입력하세요" maxlength="20" />
+      <div class="err-msg" id="name-err">이름을 입력해주세요</div>
+    </div>
+    <div class="field">
+      <label>답변</label>
+      <input type="text" id="ans-input" placeholder="여기에 입력하세요" />
+      <div class="err-msg" id="ans-err">답변을 입력해주세요</div>
+    </div>
+    <div class="loading" id="loading"><div class="spinner"></div>전송 중...</div>
+    <button class="submit-btn" id="submit-btn" onclick="submit()">제출하기 →</button>
+  </div>
+  <div id="done-screen">
+    <div class="done-icon">✅</div>
+    <h2>제출 완료!</h2>
+    <p><span class="done-name" id="done-name"></span>님의 답변이<br>선생님께 전달되었습니다 😊</p>
+  </div>
+</div>
+<script>
+// ✅ Apps Script URL 직접 내장
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_tlOI7tZyfM4GiALRf2ZaBq4f8kL7HYU9LwZqOh8npvN-LPzR33lF4sQqGGKdvYkb/exec";
+
+window.onload = async () => {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getQuestion');
+    const data = await res.json();
+    if (data.success && data.question) {
+      document.getElementById('q-text').textContent = data.question;
+      if (data.hint) document.getElementById('ans-input').placeholder = data.hint;
+    } else {
+      document.getElementById('q-text').textContent = '선생님이 아직 질문을 설정하지 않았습니다.';
+      document.getElementById('submit-btn').disabled = true;
+    }
+  } catch(e) {
+    document.getElementById('q-text').textContent = '질문을 불러오는 중 오류가 발생했습니다. 새로고침해주세요.';
+  }
+};
+
+window.submit = async () => {
+  const name = document.getElementById('name-input').value.trim();
+  const answer = document.getElementById('ans-input').value.trim();
+  let valid = true;
+  if (!name) { document.getElementById('name-err').style.display='block'; valid=false; } else document.getElementById('name-err').style.display='none';
+  if (!answer) { document.getElementById('ans-err').style.display='block'; valid=false; } else document.getElementById('ans-err').style.display='none';
+  if (!valid) return;
+  const question = document.getElementById('q-text').textContent;
+  document.getElementById('loading').style.display='block';
+  document.getElementById('submit-btn').disabled=true;
+  try {
+    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'addAnswer', name, answer, question }) });
+    showDone(name);
+  } catch(e) {
+    document.getElementById('loading').style.display='none';
+    document.getElementById('submit-btn').disabled=false;
+    alert('전송 오류가 발생했습니다. 다시 시도해주세요.');
+  }
+};
+
+function showDone(name) {
+  document.getElementById('done-name').textContent = name;
+  document.getElementById('form-screen').style.display='none';
+  document.getElementById('done-screen').style.display='block';
+}
+</script>
+</body>
+</html>

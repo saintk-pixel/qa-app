@@ -75,9 +75,11 @@ const firebaseConfig = {
   projectId: "sj-kwon",
   storageBucket: "sj-kwon.firebasestorage.app",
   messagingSenderId: "857689120558",
-  appId: "1:857689120558:web:eb50476c86701d272764bf",
-  measurementId: "G-7FPJPFZ7C5"
+  appId: "1:857689120558:web:eb50476c86701d272764bf"
 };
+
+// ✅ Apps Script URL (구글 시트 저장용)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxO2Q3zBj7RkEi8jcR0MO0btfVN8CHTgQjvNl2K1lqwZobos6liBX0q2PnONdQkATQP/exec";
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -102,8 +104,10 @@ window.submitAnswer = async () => {
   const name = document.getElementById('name-input').value.trim();
   const answer = document.getElementById('ans-input').value.trim();
   let valid = true;
-  if(!name){document.getElementById('name-err').style.display='block';valid=false;}else document.getElementById('name-err').style.display='none';
-  if(!answer){document.getElementById('ans-err').style.display='block';valid=false;}else document.getElementById('ans-err').style.display='none';
+  if(!name){document.getElementById('name-err').style.display='block';valid=false;}
+  else document.getElementById('name-err').style.display='none';
+  if(!answer){document.getElementById('ans-err').style.display='block';valid=false;}
+  else document.getElementById('ans-err').style.display='none';
   if(!valid)return;
 
   const question = document.getElementById('q-text').textContent;
@@ -111,12 +115,22 @@ window.submitAnswer = async () => {
   document.getElementById('submit-btn').disabled=true;
 
   try {
+    // ① Firebase DB 저장 (실시간 확인용)
     await push(ref(db,'answers'), {
       name, answer, question, timestamp: Date.now()
     });
+
+    // ② 구글 시트 저장 (기록 보관용)
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'addAnswer', name, answer, question })
+    }).catch(e => console.warn('시트 저장 오류:', e));
+
+    // 완료 화면
     document.getElementById('done-name').textContent = name;
     document.getElementById('form-screen').style.display='none';
     document.getElementById('done-screen').style.display='block';
+
   } catch(e) {
     document.getElementById('loading').style.display='none';
     document.getElementById('submit-btn').disabled=false;

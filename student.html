@@ -46,16 +46,16 @@
     <div class="q-text" id="q-text">질문을 불러오는 중...</div>
     <div class="field">
       <label>이름</label>
-      <input type="text" id="name-input" placeholder="이름을 입력하세요" maxlength="20" />
+      <input type="text" id="name-input" placeholder="이름을 입력하세요" maxlength="20"/>
       <div class="err-msg" id="name-err">이름을 입력해주세요</div>
     </div>
     <div class="field">
       <label>답변</label>
-      <input type="text" id="ans-input" placeholder="여기에 입력하세요" />
+      <input type="text" id="ans-input" placeholder="여기에 입력하세요"/>
       <div class="err-msg" id="ans-err">답변을 입력해주세요</div>
     </div>
     <div class="loading" id="loading"><div class="spinner"></div>전송 중...</div>
-    <button class="submit-btn" id="submit-btn" onclick="submit()">제출하기 →</button>
+    <button class="submit-btn" id="submit-btn" onclick="submitAnswer()">제출하기 →</button>
   </div>
   <div id="done-screen">
     <div class="done-icon">✅</div>
@@ -63,51 +63,66 @@
     <p><span class="done-name" id="done-name"></span>님의 답변이<br>선생님께 전달되었습니다 😊</p>
   </div>
 </div>
-<script>
-// ✅ Apps Script URL 직접 내장
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_tlOI7tZyfM4GiALRf2ZaBq4f8kL7HYU9LwZqOh8npvN-LPzR33lF4sQqGGKdvYkb/exec";
 
-window.onload = async () => {
-  try {
-    const res = await fetch(SCRIPT_URL + '?action=getQuestion');
-    const data = await res.json();
-    if (data.success && data.question) {
-      document.getElementById('q-text').textContent = data.question;
-      if (data.hint) document.getElementById('ans-input').placeholder = data.hint;
-    } else {
-      document.getElementById('q-text').textContent = '선생님이 아직 질문을 설정하지 않았습니다.';
-      document.getElementById('submit-btn').disabled = true;
-    }
-  } catch(e) {
-    document.getElementById('q-text').textContent = '질문을 불러오는 중 오류가 발생했습니다. 새로고침해주세요.';
-  }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA8BsU58o14UnrGr39gBZrrOapzFWjNg-U",
+  authDomain: "sj-kwon.firebaseapp.com",
+  databaseURL: "https://sj-kwon-default-rtdb.firebaseio.com",
+  projectId: "sj-kwon",
+  storageBucket: "sj-kwon.firebasestorage.app",
+  messagingSenderId: "857689120558",
+  appId: "1:857689120558:web:eb50476c86701d272764bf",
+  measurementId: "G-7FPJPFZ7C5"
 };
 
-window.submit = async () => {
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// 질문 불러오기
+get(ref(db,'config/question')).then(snap => {
+  if(snap.exists() && snap.val()) {
+    document.getElementById('q-text').textContent = snap.val();
+  } else {
+    document.getElementById('q-text').textContent = '선생님이 아직 질문을 설정하지 않았습니다.';
+    document.getElementById('submit-btn').disabled = true;
+  }
+});
+
+get(ref(db,'config/hint')).then(snap => {
+  if(snap.exists() && snap.val()) {
+    document.getElementById('ans-input').placeholder = snap.val();
+  }
+});
+
+window.submitAnswer = async () => {
   const name = document.getElementById('name-input').value.trim();
   const answer = document.getElementById('ans-input').value.trim();
   let valid = true;
-  if (!name) { document.getElementById('name-err').style.display='block'; valid=false; } else document.getElementById('name-err').style.display='none';
-  if (!answer) { document.getElementById('ans-err').style.display='block'; valid=false; } else document.getElementById('ans-err').style.display='none';
-  if (!valid) return;
+  if(!name){document.getElementById('name-err').style.display='block';valid=false;}else document.getElementById('name-err').style.display='none';
+  if(!answer){document.getElementById('ans-err').style.display='block';valid=false;}else document.getElementById('ans-err').style.display='none';
+  if(!valid)return;
+
   const question = document.getElementById('q-text').textContent;
   document.getElementById('loading').style.display='block';
   document.getElementById('submit-btn').disabled=true;
+
   try {
-    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'addAnswer', name, answer, question }) });
-    showDone(name);
+    await push(ref(db,'answers'), {
+      name, answer, question, timestamp: Date.now()
+    });
+    document.getElementById('done-name').textContent = name;
+    document.getElementById('form-screen').style.display='none';
+    document.getElementById('done-screen').style.display='block';
   } catch(e) {
     document.getElementById('loading').style.display='none';
     document.getElementById('submit-btn').disabled=false;
     alert('전송 오류가 발생했습니다. 다시 시도해주세요.');
   }
 };
-
-function showDone(name) {
-  document.getElementById('done-name').textContent = name;
-  document.getElementById('form-screen').style.display='none';
-  document.getElementById('done-screen').style.display='block';
-}
 </script>
 </body>
 </html>

@@ -6,11 +6,7 @@
 <title>👨‍🏫 선생님 대시보드</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;800&family=DM+Mono:wght@400;500&display=swap');
-  :root {
-    --bg:#0d1117;--surface:#161b22;--card:#21262d;
-    --accent:#58a6ff;--accent2:#3fb950;--accent3:#f78166;
-    --text:#e6edf3;--muted:#7d8590;--border:#30363d;
-  }
+  :root{--bg:#0d1117;--surface:#161b22;--card:#21262d;--accent:#58a6ff;--accent2:#3fb950;--accent3:#f78166;--text:#e6edf3;--muted:#7d8590;--border:#30363d;}
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
   body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(88,166,255,0.06) 0%,transparent 60%),radial-gradient(ellipse at 100% 100%,rgba(63,185,80,0.05) 0%,transparent 60%);pointer-events:none;}
@@ -18,8 +14,7 @@
   .hd{display:flex;align-items:center;gap:14px;margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border);}
   .hd-icon{font-size:32px;}.hd h1{font-size:22px;font-weight:800;}.hd p{font-size:13px;color:var(--muted);margin-top:2px;}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px;}
-  .card h2{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-  .tag{background:var(--accent);color:#000;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;}
+  .card h2{font-size:15px;font-weight:700;margin-bottom:16px;}
   input,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
   input:focus,textarea:focus{border-color:var(--accent);}
   textarea{resize:none;line-height:1.6;}
@@ -44,15 +39,11 @@
   td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
   tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(88,166,255,0.04);}
   .empty-row td{text-align:center;color:var(--muted);padding:40px;}
-  .step{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:8px;}
-  .step .n{background:var(--accent);color:#000;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px;}
-  .step a{color:var(--accent);}.step strong{color:var(--text);}
-  .url-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
-  .url-row input{flex:1;min-width:180px;font-family:'DM Mono',monospace;font-size:12px;}
   .active-q-box{background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.3);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:none;}
   .active-q-box .albl{font-size:11px;color:var(--accent2);font-weight:700;margin-bottom:4px;}
   .active-q-box .qtxt{font-size:15px;font-weight:700;}
   .toast{position:fixed;bottom:24px;right:24px;background:var(--accent2);color:#000;padding:12px 20px;border-radius:10px;font-weight:700;font-size:14px;display:none;z-index:99;}
+  .conn-bar{font-size:12px;color:var(--muted);margin-top:4px;}
   @media(max-width:500px){.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -60,22 +51,13 @@
 <div class="wrap">
   <div class="hd">
     <div class="hd-icon">👨‍🏫</div>
-    <div><h1>선생님 대시보드</h1><p>질문을 설정하고 학생 답변을 구글 시트로 관리하세요</p></div>
-  </div>
-
-  <div class="card" id="setup-card">
-    <h2>⚙️ Google Sheets 연결 <span class="tag">최초 1회</span></h2>
-    <div class="step"><span class="n">1</span><span><a href="https://sheets.google.com" target="_blank">sheets.google.com</a> → 새 스프레드시트 생성</span></div>
-    <div class="step"><span class="n">2</span><span>상단 메뉴 → <strong>확장 프로그램 → Apps Script</strong></span></div>
-    <div class="step"><span class="n">3</span><span>함께 받은 <strong>apps_script.gs</strong> 코드 전체 붙여넣기 → 저장(Ctrl+S)</span></div>
-    <div class="step"><span class="n">4</span><span><strong>배포 → 새 배포</strong> → 유형: 웹앱 / 액세스: <strong>모든 사용자</strong> → 배포</span></div>
-    <div class="step"><span class="n">5</span><span>배포 후 나오는 <strong>웹 앱 URL</strong>을 아래에 붙여넣기</span></div>
-    <div class="url-row">
-      <input id="script-url" placeholder="https://script.google.com/macros/s/..." />
-      <button class="btn btn-blue" onclick="saveUrl()">✅ 연결하기</button>
+    <div>
+      <h1>선생님 대시보드</h1>
+      <p>질문을 설정하고 학생 답변을 실시간으로 확인하세요</p>
     </div>
   </div>
 
+  <!-- 질문 설정 -->
   <div class="card">
     <h2>✏️ 질문 설정</h2>
     <div class="active-q-box" id="active-q-box">
@@ -97,12 +79,14 @@
     </div>
   </div>
 
+  <!-- 답변 현황 -->
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-      <h2 style="margin-bottom:0;">📊 답변 현황 <span style="font-size:12px;color:var(--muted)"><span class="dot" id="conn-dot"></span><span id="conn-txt">대기 중</span></span></h2>
+      <div>
+        <h2 style="margin-bottom:0;">📊 답변 현황</h2>
+        <div class="conn-bar"><span class="dot" id="conn-dot"></span><span id="conn-txt">연결 중...</span></div>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="loadAnswers()">🔄 새로고침</button>
-        <button class="btn btn-ghost btn-sm" onclick="openSheet()">📊 시트 열기</button>
         <button class="btn btn-red btn-sm" onclick="clearAll()">🗑 전체 삭제</button>
       </div>
     </div>
@@ -120,78 +104,122 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<script>
-let SCRIPT_URL=localStorage.getItem('qaUrl')||'';
-window.onload=()=>{
-  const base=location.href.replace('teacher.html','student.html').split('?')[0];
-  document.getElementById('student-link').textContent=base;
-  if(SCRIPT_URL){document.getElementById('setup-card').style.display='none';loadActiveQuestion();loadAnswers();setInterval(loadAnswers,10000);}
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA8BsU58o14UnrGr39gBZrrOapzFWjNg-U",
+  authDomain: "sj-kwon.firebaseapp.com",
+  databaseURL: "https://sj-kwon-default-rtdb.firebaseio.com",
+  projectId: "sj-kwon",
+  storageBucket: "sj-kwon.firebasestorage.app",
+  messagingSenderId: "857689120558",
+  appId: "1:857689120558:web:eb50476c86701d272764bf",
+  measurementId: "G-7FPJPFZ7C5"
 };
-window.saveUrl=()=>{
-  const url=document.getElementById('script-url').value.trim();
-  if(!url.startsWith('https://script.google.com')){alert('올바른 URL을 입력해주세요!');return;}
-  SCRIPT_URL=url;localStorage.setItem('qaUrl',url);
-  document.getElementById('setup-card').style.display='none';
-  showToast('✅ 연결 완료!');loadActiveQuestion();loadAnswers();setInterval(loadAnswers,10000);
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// 학생 링크 설정
+const base = location.href.replace('teacher.html','student.html').split('?')[0];
+document.getElementById('student-link').textContent = base;
+
+// 현재 질문 불러오기
+const qRef = ref(db, 'config/question');
+const hRef = ref(db, 'config/hint');
+get(qRef).then(snap => {
+  if(snap.exists()) {
+    const q = snap.val();
+    document.getElementById('question-text').value = q;
+    showAQ(q);
+  }
+});
+get(hRef).then(snap => {
+  if(snap.exists()) document.getElementById('question-hint').value = snap.val();
+});
+
+// 질문 저장
+window.saveQuestion = async () => {
+  const q = document.getElementById('question-text').value.trim();
+  const hint = document.getElementById('question-hint').value.trim();
+  if(!q){alert('질문을 입력해주세요!');return;}
+  await set(ref(db,'config/question'), q);
+  await set(ref(db,'config/hint'), hint);
+  showAQ(q);
+  showToast('✅ 질문이 저장되었습니다!');
 };
-async function loadActiveQuestion(){
-  if(!SCRIPT_URL)return;
-  try{const r=await fetch(SCRIPT_URL+'?action=getQuestion');const d=await r.json();
-    if(d.success&&d.question){showAQ(d.question);document.getElementById('question-text').value=d.question;if(d.hint)document.getElementById('question-hint').value=d.hint;}
-  }catch(e){}
-}
+
+window.clearQuestion = async () => {
+  if(!confirm('질문을 초기화할까요?'))return;
+  await set(ref(db,'config/question'),'');
+  await set(ref(db,'config/hint'),'');
+  document.getElementById('question-text').value='';
+  document.getElementById('question-hint').value='';
+  document.getElementById('active-q-box').style.display='none';
+};
+
 function showAQ(q){
   document.getElementById('active-q-box').style.display='block';
   document.getElementById('active-q-txt').textContent=q;
   document.getElementById('cnt-q').textContent=q.length>12?q.slice(0,12)+'…':q;
 }
-window.saveQuestion=async()=>{
-  const q=document.getElementById('question-text').value.trim();
-  const hint=document.getElementById('question-hint').value.trim();
-  if(!q){alert('질문을 입력해주세요!');return;}
-  if(!SCRIPT_URL){alert('먼저 Apps Script URL을 연결해주세요!');return;}
-  try{
-    await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'setQuestion',question:q,hint})});
-    showAQ(q);showToast('✅ 질문이 저장되었습니다!');
-  }catch(e){alert('저장 오류: '+e.message);}
-};
-window.clearQuestion=async()=>{
-  if(!confirm('질문을 초기화할까요?'))return;
-  document.getElementById('question-text').value='';document.getElementById('question-hint').value='';
-  document.getElementById('active-q-box').style.display='none';
-  if(SCRIPT_URL)try{await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'setQuestion',question:'',hint:''})});}catch(e){}
-};
-window.copyLink=()=>{
-  const url=document.getElementById('student-link').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('📋 링크 복사됨!'));
-};
-window.loadAnswers=async()=>{
-  if(!SCRIPT_URL)return;
-  setConn('loading','불러오는 중...');
-  try{const r=await fetch(SCRIPT_URL+'?action=getAnswers');const d=await r.json();
-    if(d.success){renderAnswers(d.answers);setConn('ok','연결됨 · '+d.answers.length+'개');}
-  }catch(e){setConn('err','연결 오류');}
-};
+
+// 답변 실시간 감지
+const answersRef = ref(db,'answers');
+onValue(answersRef, (snap) => {
+  const data = snap.val();
+  const answers = data ? Object.entries(data).map(([id,v])=>({id,...v})) : [];
+  answers.sort((a,b)=>b.timestamp-a.timestamp);
+  renderAnswers(answers);
+  setConn('ok',`실시간 연결 · ${answers.length}개`);
+}, (err) => {
+  setConn('err','연결 오류');
+});
+
 function renderAnswers(answers){
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr = new Date().toISOString().slice(0,10);
+  const todayCount = answers.filter(a=>new Date(a.timestamp).toISOString().slice(0,10)===todayStr).length;
   document.getElementById('cnt-total').textContent=answers.length;
-  document.getElementById('cnt-today').textContent=answers.filter(a=>String(a.time).startsWith(todayStr)).length;
+  document.getElementById('cnt-today').textContent=todayCount;
   const tb=document.getElementById('answer-tbody');
   if(!answers.length){tb.innerHTML='<tr class="empty-row"><td colspan="5">아직 답변이 없습니다</td></tr>';return;}
-  tb.innerHTML=answers.map((a,i)=>`<tr><td style="color:var(--muted);font-size:12px;">${answers.length-i}</td><td style="font-weight:600;">${esc(a.name)}</td><td>${esc(a.answer)}</td><td style="color:var(--muted);font-size:12px;white-space:nowrap;">${esc(String(a.time))}</td><td><button class="btn btn-red btn-sm" onclick="delAnswer(${a.rowIndex})">✕</button></td></tr>`).join('');
+  tb.innerHTML=answers.map((a,i)=>`
+    <tr>
+      <td style="color:var(--muted);font-size:12px;">${answers.length-i}</td>
+      <td style="font-weight:600;">${esc(a.name)}</td>
+      <td>${esc(a.answer)}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap;">${formatTime(a.timestamp)}</td>
+      <td><button class="btn btn-red btn-sm" onclick="delAnswer('${a.id}')">✕</button></td>
+    </tr>
+  `).join('');
 }
-window.delAnswer=async(rowIndex)=>{
+
+window.delAnswer = async (id) => {
   if(!confirm('삭제할까요?'))return;
-  try{await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteAnswer',rowIndex})});loadAnswers();}catch(e){alert('삭제 오류');}
+  await remove(ref(db,`answers/${id}`));
 };
-window.clearAll=async()=>{
+
+window.clearAll = async () => {
   if(!confirm('모든 답변을 삭제할까요?'))return;
-  try{await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'clearAll'})});loadAnswers();showToast('🗑 전체 삭제 완료');}catch(e){alert('오류');}
+  await remove(ref(db,'answers'));
+  showToast('🗑 전체 삭제 완료');
 };
-window.openSheet=()=>window.open('https://docs.google.com/spreadsheets/','_blank');
-function setConn(s,m){document.getElementById('conn-dot').className='dot '+(s==='ok'?'ok':s==='err'?'err':'');document.getElementById('conn-txt').textContent=m;}
+
+window.copyLink = () => {
+  const url = document.getElementById('student-link').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('📋 링크 복사됨!'));
+};
+
+function setConn(s,m){
+  document.getElementById('conn-dot').className='dot '+(s==='ok'?'ok':'err');
+  document.getElementById('conn-txt').textContent=m;
+}
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function formatTime(ts){return new Date(ts).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
 </script>
 </body>
 </html>

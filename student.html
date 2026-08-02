@@ -67,6 +67,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA8BsU58o14UnrGr39gBZrrOapzFWjNg-U",
@@ -83,22 +84,39 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxO2Q3zBj7RkEi8jcR0M
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-// 질문 불러오기
-get(ref(db,'config/question')).then(snap => {
-  if(snap.exists() && snap.val()) {
-    document.getElementById('q-text').textContent = snap.val();
-  } else {
-    document.getElementById('q-text').textContent = '선생님이 아직 질문을 설정하지 않았습니다.';
-    document.getElementById('submit-btn').disabled = true;
-  }
-});
+// 익명 인증 → 성공 후에만 질문 불러오기 (학생은 로그인할 필요 없음)
+document.getElementById('submit-btn').disabled = true;
+document.getElementById('q-text').textContent = '불러오는 중…';
 
-get(ref(db,'config/hint')).then(snap => {
-  if(snap.exists() && snap.val()) {
-    document.getElementById('ans-input').placeholder = snap.val();
-  }
-});
+signInAnonymously(auth)
+  .then(loadQuestion)
+  .catch(e => {
+    console.error('[익명 인증 실패]', e.code);
+    document.getElementById('q-text').textContent =
+      '⚠️ 접속할 수 없습니다. 선생님께 알려주세요. (' + e.code + ')';
+  });
+
+function loadQuestion(){
+  get(ref(db,'config/question')).then(snap => {
+    if(snap.exists() && snap.val()) {
+      document.getElementById('q-text').textContent = snap.val();
+      document.getElementById('submit-btn').disabled = false;
+    } else {
+      document.getElementById('q-text').textContent = '선생님이 아직 질문을 설정하지 않았습니다.';
+    }
+  }).catch(e => {
+    console.error('[Firebase]', e);
+    document.getElementById('q-text').textContent = '⚠️ 서버에 연결할 수 없습니다. 선생님께 알려주세요.';
+  });
+
+  get(ref(db,'config/hint')).then(snap => {
+    if(snap.exists() && snap.val()) {
+      document.getElementById('ans-input').placeholder = snap.val();
+    }
+  }).catch(e => console.warn('[hint]', e));
+}
 
 window.submitAnswer = async () => {
   const name = document.getElementById('name-input').value.trim();

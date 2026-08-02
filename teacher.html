@@ -75,11 +75,12 @@
   <div class="login-box">
     <div class="ico">🔐</div>
     <h1>선생님 전용</h1>
-    <p>비밀번호를 입력해주세요</p>
-    <input type="password" id="pw-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPw()" />
+    <p>선생님 계정으로 로그인해주세요</p>
+    <input type="email" id="email-input" placeholder="이메일" autocomplete="username" style="margin-bottom:8px;" onkeydown="if(event.key==='Enter')checkPw()" />
+    <input type="password" id="pw-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')checkPw()" />
     <div class="login-err" id="login-err">❌ 비밀번호가 틀렸습니다</div>
     <button class="btn btn-blue btn-full" onclick="checkPw()">입장하기</button>
-    <p class="login-hint">처음 사용 시 기본 비밀번호: <strong style="color:var(--accent)">1234</strong></p>
+    <p class="login-hint">🔒 Firebase 인증으로 보호되는 페이지입니다</p>
   </div>
 </div>
 
@@ -166,6 +167,9 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+         updatePassword, EmailAuthProvider, reauthenticateWithCredential }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA8BsU58o14UnrGr39gBZrrOapzFWjNg-U",
@@ -179,37 +183,57 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-// ── 비밀번호 체크 ──
+// ── Firebase 인증 로그인 ──
+const ERR_MSG = {
+  'auth/invalid-email'          : '❌ 이메일 형식이 올바르지 않습니다',
+  'auth/invalid-credential'     : '❌ 이메일 또는 비밀번호가 틀렸습니다',
+  'auth/wrong-password'         : '❌ 비밀번호가 틀렸습니다',
+  'auth/user-not-found'         : '❌ 등록되지 않은 계정입니다',
+  'auth/too-many-requests'      : '⏳ 시도가 너무 많습니다. 잠시 후 다시 해주세요',
+  'auth/network-request-failed' : '⚠️ 네트워크 연결을 확인해주세요',
+  'auth/operation-not-allowed'  : '⚠️ 콘솔에서 이메일/비밀번호 로그인을 켜주세요'
+};
+
 window.checkPw = async () => {
-  const input = document.getElementById('pw-input').value;
-  const snap = await get(ref(db, 'config/password'));
-  const storedPw = snap.exists() ? snap.val() : '1234'; // 기본값 1234
-  if(input === storedPw) {
-    sessionStorage.setItem('teacherAuth', 'true');
-    document.getElementById('login-wrap').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    initDashboard();
-  } else {
-    document.getElementById('login-err').style.display = 'block';
+  const email = document.getElementById('email-input').value.trim();
+  const pw    = document.getElementById('pw-input').value;
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+
+  if(!email || !pw){
+    errEl.innerHTML = '❌ 이메일과 비밀번호를 모두 입력해주세요';
+    errEl.style.display = 'block';
+    return;
+  }
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    console.error('[로그인 실패]', e.code);
+    errEl.innerHTML = ERR_MSG[e.code] || ('⚠️ 오류: ' + e.code);
+    errEl.style.display = 'block';
     document.getElementById('pw-input').value = '';
   }
 };
 
-window.logout = () => {
-  sessionStorage.removeItem('teacherAuth');
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('login-wrap').style.display = 'flex';
-  document.getElementById('pw-input').value = '';
-  document.getElementById('login-err').style.display = 'none';
+window.logout = async () => {
+  await signOut(auth);
+  location.reload();
 };
 
-// 세션 유지 확인
-if(sessionStorage.getItem('teacherAuth') === 'true') {
-  document.getElementById('login-wrap').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
-  initDashboard();
-}
+// 로그인 상태 자동 감지 (새로고침해도 유지됨)
+let dashReady = false;
+onAuthStateChanged(auth, (user) => {
+  if(user && !user.isAnonymous){
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('dashboard').style.display  = 'block';
+    if(!dashReady){ dashReady = true; initDashboard(); }
+  } else {
+    document.getElementById('login-wrap').style.display = 'flex';
+    document.getElementById('dashboard').style.display  = 'none';
+  }
+});
 
 // ── 대시보드 초기화 ──
 function initDashboard() {
@@ -234,7 +258,7 @@ function initDashboard() {
     answers.sort((a,b)=>b.timestamp-a.timestamp);
     renderAnswers(answers);
     setConn('ok',`실시간 연결 · ${answers.length}개`);
-  }, () => setConn('err','연결 오류'));
+  }, (e) => { console.error('[Firebase]', e); setConn('err','⚠️ 연결 오류 — 규칙/권한 확인 필요'); });
 }
 
 // ── 질문 저장 ──
@@ -312,14 +336,20 @@ window.changePw = async () => {
   const okEl = document.getElementById('pw-ok');
   errEl.style.display='none'; okEl.style.display='none';
 
-  const snap = await get(ref(db,'config/password'));
-  const storedPw = snap.exists() ? snap.val() : '1234';
-
-  if(oldPw !== storedPw){ errEl.textContent='❌ 현재 비밀번호가 틀렸습니다.'; errEl.style.display='block'; return; }
-  if(newPw.length < 4){ errEl.textContent='❌ 새 비밀번호는 4자리 이상이어야 합니다.'; errEl.style.display='block'; return; }
+  if(newPw.length < 6){ errEl.textContent='❌ 새 비밀번호는 6자리 이상이어야 합니다.'; errEl.style.display='block'; return; }
   if(newPw !== newPw2){ errEl.textContent='❌ 새 비밀번호가 일치하지 않습니다.'; errEl.style.display='block'; return; }
 
-  await set(ref(db,'config/password'), newPw);
+  try {
+    const cred = EmailAuthProvider.credential(auth.currentUser.email, oldPw);
+    await reauthenticateWithCredential(auth.currentUser, cred);
+    await updatePassword(auth.currentUser, newPw);
+  } catch(e) {
+    console.error('[비밀번호 변경]', e.code);
+    errEl.textContent = (e.code==='auth/invalid-credential' || e.code==='auth/wrong-password')
+      ? '❌ 현재 비밀번호가 틀렸습니다.' : ('⚠️ 오류: ' + e.code);
+    errEl.style.display='block';
+    return;
+  }
   okEl.style.display='block';
   document.getElementById('pw-old').value='';
   document.getElementById('pw-new').value='';
